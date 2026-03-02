@@ -4,6 +4,8 @@ import com.example.hito4.data.dao.SessionWithSubjectName
 import com.example.hito4.data.dao.StudySessionDao
 import com.example.hito4.data.entity.StudySessionEntity
 import kotlinx.coroutines.flow.Flow
+import com.example.hito4.data.dao.SubjectRankingRow
+
 
 class StudySessionRepository(private val dao: StudySessionDao) {
 
@@ -29,4 +31,7 @@ class StudySessionRepository(private val dao: StudySessionDao) {
 
     fun observeSessions(): Flow<List<SessionWithSubjectName>> =
         dao.observeSessionsWithSubjectName()
+
+    fun observeSubjectRanking(): Flow<List<SubjectRankingRow>> = dao.observeSubjectRanking()
 }
+

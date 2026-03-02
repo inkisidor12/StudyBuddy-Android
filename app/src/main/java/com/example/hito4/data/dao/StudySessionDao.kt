@@ -14,6 +14,11 @@ data class SessionWithSubjectName(
     val plannedMinutes: Int,
     val actualMinutes: Int
 )
+data class SubjectRankingRow(
+    val subjectId: Long,
+    val subjectName: String,
+    val totalMinutes: Int
+)
 
 @Dao
 interface StudySessionDao {
@@ -38,4 +43,19 @@ interface StudySessionDao {
         """
     )
     fun observeSessionsWithSubjectName(): Flow<List<SessionWithSubjectName>>
+    @Query(
+        """
+    SELECT s.id as subjectId,
+           s.name as subjectName,
+           COALESCE(SUM(ss.actualMinutes), 0) as totalMinutes
+    FROM subjects s
+    LEFT JOIN study_sessions ss ON ss.subjectId = s.id
+    GROUP BY s.id, s.name
+    ORDER BY totalMinutes DESC, s.name ASC
+    """
+    )
+    fun observeSubjectRanking(): Flow<List<SubjectRankingRow>>
+
 }
+
+

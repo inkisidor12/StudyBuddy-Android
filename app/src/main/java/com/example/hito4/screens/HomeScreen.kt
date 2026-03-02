@@ -9,9 +9,9 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.filled.EmojiEvents
 
-private enum class HomeTab { SUBJECTS, FOCUS, STATS }
-
+private enum class HomeTab { SUBJECTS, FOCUS, STATS, RANKING }
 @Composable
 fun HomeScreen() {
     var tab by remember { mutableStateOf(HomeTab.SUBJECTS) }
@@ -37,6 +37,12 @@ fun HomeScreen() {
                     icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
                     label = { Text("Stats") }
                 )
+                NavigationBarItem(
+                    selected = tab == HomeTab.RANKING,
+                    onClick = { tab = HomeTab.RANKING },
+                    icon = { Icon(Icons.Default.EmojiEvents, contentDescription = null) },
+                    label = { Text("Ranking") }
+                )
             }
         }
     ) { padding ->
@@ -44,6 +50,7 @@ fun HomeScreen() {
             HomeTab.SUBJECTS -> SubjectsScreen(modifier = Modifier.padding(padding))
             HomeTab.FOCUS -> FocusScreen(modifier = Modifier.padding(padding))
             HomeTab.STATS -> StatsScreen(modifier = Modifier.padding(padding))
+            HomeTab.RANKING -> RankingScreen(modifier = Modifier.padding(padding))
         }
     }
 }
