@@ -62,10 +62,7 @@ fun LoginScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            Text(
-                "MVP: login local (sin servidor).",
-                style = MaterialTheme.typography.labelSmall
-            )
+
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hito4.ui.ForestCard
 import com.example.hito4.ui.rememberAppContainer
 import com.example.hito4.viewmodel.StatsViewModel
 import com.example.hito4.viewmodel.StatsViewModelFactory
@@ -29,7 +30,14 @@ fun StatsScreen(modifier: Modifier = Modifier) {
 
     Scaffold(
         modifier = modifier,
-        topBar = { TopAppBar(title = { Text("Stats") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Stats", color = MaterialTheme.colorScheme.onPrimary) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            )
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -40,21 +48,17 @@ fun StatsScreen(modifier: Modifier = Modifier) {
         ) {
             Text("Estadísticas", style = MaterialTheme.typography.titleLarge)
 
-            ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Minutos totales estudiados: $totalMinutes")
-                    Text("Sesiones registradas: ${sessions.size}")
-                }
+            ForestCard(modifier = Modifier.fillMaxWidth()) {
+                Text("Minutos totales estudiados: $totalMinutes", style = MaterialTheme.typography.titleMedium)
+                Text("Sesiones registradas: ${sessions.size}")
             }
 
             Text("Historial de sesiones", style = MaterialTheme.typography.titleMedium)
 
             if (sessions.isEmpty()) {
-                ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text("Aún no hay sesiones.")
-                        Text("Completa una sesión en Focus para verla aquí.")
-                    }
+                ForestCard(modifier = Modifier.fillMaxWidth()) {
+                    Text("Aún no hay sesiones.")
+                    Text("Completa una sesión en Focus para verla aquí.")
                 }
             } else {
                 LazyColumn(
@@ -62,17 +66,12 @@ fun StatsScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(sessions) { s ->
-                        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(Modifier.padding(16.dp)) {
-                                Text(
-                                    text = s.subjectName,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Spacer(Modifier.height(6.dp))
-                                Text("Real: ${s.actualMinutes} min | Plan: ${s.plannedMinutes} min")
-                                Text("Inicio: ${formatMillis(s.startTimeMillis)}")
-                                Text("Fin: ${formatMillis(s.endTimeMillis)}")
-                            }
+                        ForestCard(modifier = Modifier.fillMaxWidth()) {
+                            Text(s.subjectName, style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.height(6.dp))
+                            Text("Real: ${s.actualMinutes} min | Plan: ${s.plannedMinutes} min")
+                            Text("Inicio: ${formatMillis(s.startTimeMillis)}")
+                            Text("Fin: ${formatMillis(s.endTimeMillis)}")
                         }
                     }
                 }
