@@ -5,21 +5,52 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hito4.ui.ForestBackground
+import com.example.hito4.ui.rememberAppContainer
+import com.example.hito4.viewmodel.LoginViewModel
+import com.example.hito4.viewmodel.LoginViewModelFactory
 
 private enum class HomeTab { SUBJECTS, FOCUS, STATS, RANKING }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(onLogout: () -> Unit) {
     var tab by remember { mutableStateOf(HomeTab.SUBJECTS) }
+
+    val container = rememberAppContainer()
+    val vm: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(container.userPreferences)
+    )
 
     ForestBackground {
         Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("StudyBuddy 🌲", color = MaterialTheme.colorScheme.onPrimary) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    actions = {
+                        IconButton(onClick = {
+                            vm.logout()
+                            onLogout()
+                        }) {
+                            Icon(
+                                Icons.Default.Logout,
+                                contentDescription = "Cerrar sesión",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                )
+            },
             bottomBar = {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -39,7 +70,6 @@ fun HomeScreen() {
                             selectedTextColor = selectedColor,
                             unselectedIconColor = unselectedColor,
                             unselectedTextColor = unselectedColor,
-                            //indicatorColor = indicator
                             indicatorColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.20f)
                         )
                     )

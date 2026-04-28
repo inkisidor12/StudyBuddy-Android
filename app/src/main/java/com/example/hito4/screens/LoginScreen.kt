@@ -1,6 +1,5 @@
 package com.example.hito4.screens
 
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -8,11 +7,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hito4.ui.rememberAppContainer
+import com.example.hito4.viewmodel.LoginViewModel
+import com.example.hito4.viewmodel.LoginViewModelFactory
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit
 ) {
+    val container = rememberAppContainer()
+    val vm: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(container.userPreferences)
+    )
+
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -53,16 +61,15 @@ fun LoginScreen(
             Spacer(Modifier.height(20.dp))
 
             Button(
-                onClick = onLoginSuccess,
+                onClick = {
+                    vm.login(username)
+                    onLoginSuccess()
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = username.isNotBlank()
             ) {
                 Text("Entrar")
             }
-
-            Spacer(Modifier.height(10.dp))
-
-
         }
     }
 }

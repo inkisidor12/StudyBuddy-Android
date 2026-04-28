@@ -11,4 +11,6 @@ class AppContainer(context: Context) {
 
     val subjectRepository: SubjectRepository = SubjectRepository(db.subjectDao())
     val studySessionRepository: StudySessionRepository = StudySessionRepository(db.studySessionDao())
+    val userPreferences: UserPreferences = UserPreferences(context)
+
 }
