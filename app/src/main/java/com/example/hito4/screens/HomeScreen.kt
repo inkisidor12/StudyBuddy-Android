@@ -26,7 +26,10 @@ fun HomeScreen(onLogout: () -> Unit) {
 
     val container = rememberAppContainer()
     val vm: LoginViewModel = viewModel(
-        factory = LoginViewModelFactory(container.userPreferences)
+        factory = LoginViewModelFactory(
+            container.authRepository,
+            container.userPreferences
+        )
     )
 
     ForestBackground {

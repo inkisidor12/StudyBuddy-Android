@@ -6,20 +6,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.hito4.screens.HomeScreen
 import com.example.hito4.screens.LoginScreen
+import com.example.hito4.screens.RegisterScreen
 import com.example.hito4.ui.rememberAppContainer
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.runBlocking
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     val container = rememberAppContainer()
 
-    // Comprobamos sincrónicamente si ya hay usuario guardado
-    val savedUsername = remember {
-        runBlocking { container.userPreferences.usernameFlow.firstOrNull() }
-    }
-
-    val startDestination = if (savedUsername.isNullOrBlank()) Routes.LOGIN else Routes.HOME
+    val startDestination = if (container.authRepository.isLoggedIn) Routes.HOME else Routes.LOGIN
 
     NavHost(
         navController = navController,
@@ -31,6 +25,22 @@ fun AppNavGraph(navController: NavHostController) {
                     navController.navigate(Routes.HOME) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
+                },
+                onNavigateToRegister = {
+                    navController.navigate(Routes.REGISTER)
+                }
+            )
+        }
+
+        composable(Routes.REGISTER) {
+            RegisterScreen(
+                onRegisterSuccess = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.LOGIN) { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }

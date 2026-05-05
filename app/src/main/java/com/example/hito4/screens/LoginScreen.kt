@@ -14,15 +14,25 @@ import com.example.hito4.viewmodel.LoginViewModelFactory
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit
 ) {
     val container = rememberAppContainer()
     val vm: LoginViewModel = viewModel(
-        factory = LoginViewModelFactory(container.userPreferences)
+        factory = LoginViewModelFactory(
+            container.authRepository,
+            container.userPreferences
+        )
     )
 
-    var username by remember { mutableStateOf("") }
+    val state by vm.ui.collectAsState()
+
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) onLoginSuccess()
+    }
 
     Scaffold { padding ->
         Column(
@@ -40,9 +50,9 @@ fun LoginScreen(
             Spacer(Modifier.height(24.dp))
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Usuario") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -52,7 +62,7 @@ fun LoginScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Contraseña (opcional)") },
+                label = { Text("Contraseña") },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
@@ -60,15 +70,31 @@ fun LoginScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            Button(
-                onClick = {
-                    vm.login(username)
-                    onLoginSuccess()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = username.isNotBlank()
-            ) {
-                Text("Entrar")
+            if (state.error != null) {
+                Text(
+                    text = state.error!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+
+            if (state.isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Button(
+                    onClick = { vm.login(email, password) },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = email.isNotBlank() && password.isNotBlank()
+                ) {
+                    Text("Entrar")
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                TextButton(onClick = onNavigateToRegister) {
+                    Text("¿No tienes cuenta? Regístrate")
+                }
             }
         }
     }
