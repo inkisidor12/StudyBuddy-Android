@@ -24,8 +24,9 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun FriendsScreen(modifier: Modifier = Modifier) {
     val container = rememberAppContainer()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val vm: FriendsViewModel = viewModel(
-        factory = FriendsViewModelFactory(container.userRepository)
+        factory = FriendsViewModelFactory(container.userRepository, context)
     )
     val state by vm.ui.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }

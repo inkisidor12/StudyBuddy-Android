@@ -1,6 +1,5 @@
 package com.example.hito4
 
-
 import android.app.Application
 import com.example.hito4.data.AppContainer
 
@@ -11,5 +10,6 @@ class StudyBuddyApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        NotificationHelper.createNotificationChannel(this)
     }
 }

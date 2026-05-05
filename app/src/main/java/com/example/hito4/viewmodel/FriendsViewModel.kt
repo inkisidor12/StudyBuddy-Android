@@ -1,8 +1,10 @@
 package com.example.hito4.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.hito4.NotificationHelper
 import com.example.hito4.data.repo.FriendRequest
 import com.example.hito4.data.repo.UserProfile
 import com.example.hito4.data.repo.UserRepository
@@ -36,7 +38,8 @@ data class FriendsUiState(
 )
 
 class FriendsViewModel(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val context: Context
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(FriendsUiState())
@@ -44,6 +47,7 @@ class FriendsViewModel(
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private var lastKnownRequestCount = -1
 
     init {
         loadAll()
@@ -116,6 +120,19 @@ class FriendsViewModel(
             _ui.update { it.copy(isLoading = true) }
             val friends = userRepository.getFriends()
             val pendingRequests = userRepository.getPendingRequests()
+
+            // Mostramos notificación si hay solicitudes nuevas
+            if (lastKnownRequestCount >= 0 &&
+                pendingRequests.size > lastKnownRequestCount
+            ) {
+                val newRequest = pendingRequests.first()
+                NotificationHelper.showFriendRequestNotification(
+                    context,
+                    newRequest.fromNickname
+                )
+            }
+            lastKnownRequestCount = pendingRequests.size
+
             _ui.update {
                 it.copy(
                     friends = friends,
@@ -155,12 +172,13 @@ class FriendsViewModel(
 }
 
 class FriendsViewModelFactory(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val context: Context
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FriendsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FriendsViewModel(userRepository) as T
+            return FriendsViewModel(userRepository, context) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
