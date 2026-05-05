@@ -153,4 +153,64 @@ class UserRepository {
         return db.collection("users").document(uid).get().await()
             .toObject(UserProfile::class.java)
     }
+    suspend fun updateProfile(fullName: String, nickname: String) {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("users").document(uid).update(
+            mapOf(
+                "fullName" to fullName.trim(),
+                "nickname" to nickname.trim().lowercase()
+            )
+        ).await()
+    }
+
+    suspend fun getTotalSessions(): Int {
+        val uid = auth.currentUser?.uid ?: return 0
+        val result = db.collection("sessions")
+            .whereEqualTo("uid", uid)
+            .get()
+            .await()
+        return result.size()
+    }
+
+    suspend fun getCurrentStreak(): Int {
+        val uid = auth.currentUser?.uid ?: return 0
+        val result = db.collection("sessions")
+            .whereEqualTo("uid", uid)
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .get()
+            .await()
+
+        val days = result.documents.mapNotNull { doc ->
+            val timestamp = doc.getLong("timestamp") ?: return@mapNotNull null
+            val cal = java.util.Calendar.getInstance()
+            cal.timeInMillis = timestamp
+            Triple(
+                cal.get(java.util.Calendar.YEAR),
+                cal.get(java.util.Calendar.MONTH),
+                cal.get(java.util.Calendar.DAY_OF_MONTH)
+            )
+        }.distinct()
+
+        if (days.isEmpty()) return 0
+
+        var streak = 1
+        val today = java.util.Calendar.getInstance()
+        var checking = java.util.Calendar.getInstance()
+        checking.add(java.util.Calendar.DAY_OF_MONTH, -1)
+
+        for (i in 1 until days.size) {
+            val day = days[i]
+            if (day.first == checking.get(java.util.Calendar.YEAR) &&
+                day.second == checking.get(java.util.Calendar.MONTH) &&
+                day.third == checking.get(java.util.Calendar.DAY_OF_MONTH)
+            ) {
+                streak++
+                checking.add(java.util.Calendar.DAY_OF_MONTH, -1)
+            } else {
+                break
+            }
+        }
+
+        return streak
+    }
 }

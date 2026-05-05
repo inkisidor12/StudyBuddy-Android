@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,7 +19,7 @@ import com.example.hito4.ui.rememberAppContainer
 import com.example.hito4.viewmodel.LoginViewModel
 import com.example.hito4.viewmodel.LoginViewModelFactory
 
-private enum class HomeTab { SUBJECTS, FOCUS, FRIENDS, STATS, RANKING }
+private enum class HomeTab { SUBJECTS, FOCUS, FRIENDS, STATS, RANKING, PROFILE }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,6 +134,20 @@ fun HomeScreen(onLogout: () -> Unit) {
                             indicatorColor = indicator
                         )
                     )
+
+                    NavigationBarItem(
+                        selected = tab == HomeTab.PROFILE,
+                        onClick = { tab = HomeTab.PROFILE },
+                        icon = { Icon(Icons.Default.Person, contentDescription = null) },
+                        label = { Text("Perfil") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = selectedColor,
+                            selectedTextColor = selectedColor,
+                            unselectedIconColor = unselectedColor,
+                            unselectedTextColor = unselectedColor,
+                            indicatorColor = indicator
+                        )
+                    )
                 }
             }
         ) { padding ->
@@ -142,6 +157,7 @@ fun HomeScreen(onLogout: () -> Unit) {
                 HomeTab.FRIENDS -> FriendsScreen(modifier = Modifier.padding(padding))
                 HomeTab.STATS -> StatsScreen(modifier = Modifier.padding(padding))
                 HomeTab.RANKING -> RankingScreen(modifier = Modifier.padding(padding))
+                HomeTab.PROFILE -> ProfileScreen(modifier = Modifier.padding(padding))
             }
         }
     }
