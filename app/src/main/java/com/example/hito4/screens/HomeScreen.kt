@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,7 +18,7 @@ import com.example.hito4.ui.rememberAppContainer
 import com.example.hito4.viewmodel.LoginViewModel
 import com.example.hito4.viewmodel.LoginViewModelFactory
 
-private enum class HomeTab { SUBJECTS, FOCUS, STATS, RANKING }
+private enum class HomeTab { SUBJECTS, FOCUS, FRIENDS, STATS, RANKING }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,6 +93,20 @@ fun HomeScreen(onLogout: () -> Unit) {
                     )
 
                     NavigationBarItem(
+                        selected = tab == HomeTab.FRIENDS,
+                        onClick = { tab = HomeTab.FRIENDS },
+                        icon = { Icon(Icons.Default.People, contentDescription = null) },
+                        label = { Text("Amigos") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = selectedColor,
+                            selectedTextColor = selectedColor,
+                            unselectedIconColor = unselectedColor,
+                            unselectedTextColor = unselectedColor,
+                            indicatorColor = indicator
+                        )
+                    )
+
+                    NavigationBarItem(
                         selected = tab == HomeTab.STATS,
                         onClick = { tab = HomeTab.STATS },
                         icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
@@ -124,6 +139,7 @@ fun HomeScreen(onLogout: () -> Unit) {
             when (tab) {
                 HomeTab.SUBJECTS -> SubjectsScreen(modifier = Modifier.padding(padding))
                 HomeTab.FOCUS -> FocusScreen(modifier = Modifier.padding(padding))
+                HomeTab.FRIENDS -> FriendsScreen(modifier = Modifier.padding(padding))
                 HomeTab.STATS -> StatsScreen(modifier = Modifier.padding(padding))
                 HomeTab.RANKING -> RankingScreen(modifier = Modifier.padding(padding))
             }

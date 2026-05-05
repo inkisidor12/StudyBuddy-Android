@@ -140,7 +140,8 @@ class FocusViewModelV2(
                     startTimeMillis = start,
                     endTimeMillis = System.currentTimeMillis(),
                     plannedMinutes = state.plannedMinutes,
-                    actualMinutes = state.plannedMinutes
+                    actualMinutes = state.plannedMinutes,
+                    subjectName = subject.name
                 )
             }
         }
