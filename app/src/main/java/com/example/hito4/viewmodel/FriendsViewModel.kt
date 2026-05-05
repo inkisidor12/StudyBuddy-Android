@@ -1,9 +1,9 @@
 package com.example.hito4.viewmodel
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.hito4.data.repo.FriendRequest
 import com.example.hito4.data.repo.UserProfile
 import com.example.hito4.data.repo.UserRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -25,12 +25,14 @@ data class FeedItem(
 data class FriendsUiState(
     val friends: List<UserProfile> = emptyList(),
     val feed: List<FeedItem> = emptyList(),
+    val pendingRequests: List<FriendRequest> = emptyList(),
     val searchQuery: String = "",
     val searchResult: UserProfile? = null,
     val searching: Boolean = false,
     val searchError: String? = null,
     val isLoading: Boolean = false,
-    val alreadyFriend: Boolean = false
+    val alreadyFriend: Boolean = false,
+    val requestAlreadySent: Boolean = false
 )
 
 class FriendsViewModel(
@@ -44,11 +46,19 @@ class FriendsViewModel(
     private val auth = FirebaseAuth.getInstance()
 
     init {
-        loadFriends()
+        loadAll()
     }
 
     fun onSearchQueryChange(query: String) {
-        _ui.update { it.copy(searchQuery = query, searchResult = null, searchError = null, alreadyFriend = false) }
+        _ui.update {
+            it.copy(
+                searchQuery = query,
+                searchResult = null,
+                searchError = null,
+                alreadyFriend = false,
+                requestAlreadySent = false
+            )
+        }
     }
 
     fun searchUser() {
@@ -57,30 +67,62 @@ class FriendsViewModel(
         viewModelScope.launch {
             _ui.update { it.copy(searching = true, searchResult = null, searchError = null) }
             val result = userRepository.searchUserByNickname(query)
-            if (result == null) {
-                _ui.update { it.copy(searching = false, searchError = "Usuario no encontrado") }
-            } else if (result.uid == auth.currentUser?.uid) {
-                _ui.update { it.copy(searching = false, searchError = "Ese eres tú 😄") }
-            } else {
-                val alreadyFriend = _ui.value.friends.any { it.uid == result.uid }
-                _ui.update { it.copy(searching = false, searchResult = result, alreadyFriend = alreadyFriend) }
+            when {
+                result == null -> {
+                    _ui.update { it.copy(searching = false, searchError = "Usuario no encontrado") }
+                }
+                result.uid == auth.currentUser?.uid -> {
+                    _ui.update { it.copy(searching = false, searchError = "Ese eres tú 😄") }
+                }
+                else -> {
+                    val alreadyFriend = _ui.value.friends.any { it.uid == result.uid }
+                    val requestAlreadySent = userRepository.hasPendingRequestTo(result.uid)
+                    _ui.update {
+                        it.copy(
+                            searching = false,
+                            searchResult = result,
+                            alreadyFriend = alreadyFriend,
+                            requestAlreadySent = requestAlreadySent
+                        )
+                    }
+                }
             }
         }
     }
 
-    fun addFriend(uid: String) {
+    fun sendFriendRequest(toUid: String) {
         viewModelScope.launch {
-            userRepository.addFriend(uid)
-            loadFriends()
-            _ui.update { it.copy(searchResult = null, searchQuery = "", alreadyFriend = false) }
+            userRepository.sendFriendRequest(toUid)
+            _ui.update { it.copy(requestAlreadySent = true) }
         }
     }
 
-    private fun loadFriends() {
+    fun acceptRequest(request: FriendRequest) {
+        viewModelScope.launch {
+            userRepository.acceptFriendRequest(request)
+            loadAll()
+        }
+    }
+
+    fun rejectRequest(request: FriendRequest) {
+        viewModelScope.launch {
+            userRepository.rejectFriendRequest(request)
+            loadAll()
+        }
+    }
+
+    fun loadAll() {
         viewModelScope.launch {
             _ui.update { it.copy(isLoading = true) }
             val friends = userRepository.getFriends()
-            _ui.update { it.copy(friends = friends, isLoading = false) }
+            val pendingRequests = userRepository.getPendingRequests()
+            _ui.update {
+                it.copy(
+                    friends = friends,
+                    pendingRequests = pendingRequests,
+                    isLoading = false
+                )
+            }
             loadFeed(friends)
         }
     }
