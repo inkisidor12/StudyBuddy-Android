@@ -17,25 +17,15 @@ import com.example.hito4.viewmodel.SubjectsViewModelFactory
 @Composable
 fun SubjectsScreen(modifier: Modifier = Modifier) {
     val container = rememberAppContainer()
-
     val vm: SubjectsViewModel = viewModel(
         factory = SubjectsViewModelFactory(container.subjectRepository)
     )
     val subjects by vm.subjects.collectAsState()
-
     var showDialog by remember { mutableStateOf(false) }
     var newSubject by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Asignaturas", color = MaterialTheme.colorScheme.onPrimary) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showDialog = true },
@@ -87,42 +77,29 @@ fun SubjectsScreen(modifier: Modifier = Modifier) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-
-            // ✅ Fondo del modal VERDE
             containerColor = MaterialTheme.colorScheme.primary,
-
-            // ✅ Colores del texto dentro del modal
             titleContentColor = MaterialTheme.colorScheme.onPrimary,
             textContentColor = MaterialTheme.colorScheme.onPrimary,
-
             title = { Text("Nueva asignatura") },
-
             text = {
                 OutlinedTextField(
                     value = newSubject,
                     onValueChange = { newSubject = it },
                     label = { Text("Nombre") },
                     singleLine = true,
-
-                    // ✅ TextField en modo “sobre verde”
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MaterialTheme.colorScheme.onPrimary,
                         unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
-
                         focusedContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.10f),
                         unfocusedContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.08f),
-
                         focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
                         unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.6f),
-
                         focusedLabelColor = MaterialTheme.colorScheme.onPrimary,
                         unfocusedLabelColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-
                         cursorColor = MaterialTheme.colorScheme.onPrimary
                     )
                 )
             },
-
             confirmButton = {
                 Button(
                     onClick = {
@@ -131,24 +108,17 @@ fun SubjectsScreen(modifier: Modifier = Modifier) {
                         showDialog = false
                     },
                     enabled = newSubject.isNotBlank(),
-
-                    // ✅ Botón “Crear” claro sobre verde (contraste)
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.onPrimary,
                         contentColor = MaterialTheme.colorScheme.primary,
                         disabledContainerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.35f),
                         disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
                     )
-                ) {
-                    Text("Crear")
-                }
+                ) { Text("Crear") }
             },
-
             dismissButton = {
                 OutlinedButton(
                     onClick = { showDialog = false },
-
-                    // ✅ Botón “Cancelar” borde blanco
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
@@ -157,9 +127,7 @@ fun SubjectsScreen(modifier: Modifier = Modifier) {
                             MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
                         )
                     )
-                ) {
-                    Text("Cancelar")
-                }
+                ) { Text("Cancelar") }
             }
         )
     }

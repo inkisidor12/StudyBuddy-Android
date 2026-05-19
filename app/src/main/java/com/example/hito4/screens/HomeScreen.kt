@@ -1,6 +1,11 @@
 package com.example.hito4.screens
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -11,11 +16,18 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hito4.ui.ForestBackground
 import com.example.hito4.ui.rememberAppContainer
+import com.example.hito4.viewmodel.HomeViewModel
+import com.example.hito4.viewmodel.HomeViewModelFactory
 import com.example.hito4.viewmodel.LoginViewModel
 import com.example.hito4.viewmodel.LoginViewModelFactory
 
@@ -27,12 +39,18 @@ fun HomeScreen(onLogout: () -> Unit) {
     var tab by remember { mutableStateOf(HomeTab.SUBJECTS) }
 
     val container = rememberAppContainer()
-    val vm: LoginViewModel = viewModel(
+
+    val loginVm: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(
             container.authRepository,
             container.userPreferences
         )
     )
+
+    val homeVm: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(container.userRepository)
+    )
+    val homeState by homeVm.ui.collectAsState()
 
     ForestBackground {
         Scaffold(
@@ -44,7 +62,7 @@ fun HomeScreen(onLogout: () -> Unit) {
                     ),
                     actions = {
                         IconButton(onClick = {
-                            vm.logout()
+                            loginVm.logout()
                             onLogout()
                         }) {
                             Icon(
@@ -151,13 +169,83 @@ fun HomeScreen(onLogout: () -> Unit) {
                 }
             }
         ) { padding ->
-            when (tab) {
-                HomeTab.SUBJECTS -> SubjectsScreen(modifier = Modifier.padding(padding))
-                HomeTab.FOCUS -> FocusScreen(modifier = Modifier.padding(padding))
-                HomeTab.FRIENDS -> FriendsScreen(modifier = Modifier.padding(padding))
-                HomeTab.STATS -> StatsScreen(modifier = Modifier.padding(padding))
-                HomeTab.RANKING -> RankingScreen(modifier = Modifier.padding(padding))
-                HomeTab.PROFILE -> ProfileScreen(modifier = Modifier.padding(padding))
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+            ) {
+                // Banner de racha
+                AnimatedVisibility(
+                    visible = homeState.currentStreak > 0,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                when {
+                                    homeState.currentStreak >= 7 -> Color(0xFFFF6B00)
+                                    homeState.currentStreak >= 3 -> Color(0xFFFF9500)
+                                    else -> Color(0xFFFFC107)
+                                }.copy(alpha = 0.15f)
+                            )
+                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = when {
+                                    homeState.currentStreak >= 7 -> "🔥"
+                                    homeState.currentStreak >= 3 -> "⚡"
+                                    else -> "✨"
+                                },
+                                fontSize = 24.sp
+                            )
+                            Column {
+                                Text(
+                                    text = "${homeState.currentStreak} días seguidos",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = when {
+                                        homeState.currentStreak >= 7 -> Color(0xFFFF6B00)
+                                        homeState.currentStreak >= 3 -> Color(0xFFFF9500)
+                                        else -> Color(0xFFFFC107)
+                                    }
+                                )
+                                Text(
+                                    text = when {
+                                        homeState.currentStreak >= 7 -> "¡Estás en racha! 🌳"
+                                        homeState.currentStreak >= 3 -> "¡Sigue así! 🌿"
+                                        else -> "¡Buen comienzo! 🌱"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                        Text(
+                            text = "${homeState.totalMinutes} min",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                }
+
+                when (tab) {
+                    HomeTab.SUBJECTS -> SubjectsScreen(modifier = Modifier.weight(1f))
+                    HomeTab.FOCUS -> FocusScreen(modifier = Modifier.weight(1f))
+                    HomeTab.FRIENDS -> FriendsScreen(modifier = Modifier.weight(1f))
+                    HomeTab.STATS -> StatsScreen(modifier = Modifier.weight(1f))
+                    HomeTab.RANKING -> RankingScreen(modifier = Modifier.weight(1f))
+                    HomeTab.PROFILE -> ProfileScreen(modifier = Modifier.weight(1f))
+                }
             }
         }
     }
