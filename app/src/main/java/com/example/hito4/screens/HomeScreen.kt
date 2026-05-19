@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,9 +31,9 @@ import com.example.hito4.viewmodel.HomeViewModel
 import com.example.hito4.viewmodel.HomeViewModelFactory
 import com.example.hito4.viewmodel.LoginViewModel
 import com.example.hito4.viewmodel.LoginViewModelFactory
+import androidx.compose.material.icons.filled.Star
 
-private enum class HomeTab { SUBJECTS, FOCUS, FRIENDS, STATS, RANKING, PROFILE }
-
+private enum class HomeTab { SUBJECTS, FOCUS, FRIENDS, STATS, RANKING, ACHIEVEMENTS, AI, PROFILE }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onLogout: () -> Unit) {
@@ -51,6 +52,8 @@ fun HomeScreen(onLogout: () -> Unit) {
         factory = HomeViewModelFactory(container.userRepository)
     )
     val homeState by homeVm.ui.collectAsState()
+
+
 
     ForestBackground {
         Scaffold(
@@ -152,6 +155,32 @@ fun HomeScreen(onLogout: () -> Unit) {
                             indicatorColor = indicator
                         )
                     )
+                    NavigationBarItem(
+                        selected = tab == HomeTab.ACHIEVEMENTS,
+                        onClick = { tab = HomeTab.ACHIEVEMENTS },
+                        icon = { Icon(Icons.Default.Star, contentDescription = null) },
+                        label = { Text("Logros") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = selectedColor,
+                            selectedTextColor = selectedColor,
+                            unselectedIconColor = unselectedColor,
+                            unselectedTextColor = unselectedColor,
+                            indicatorColor = indicator
+                        )
+                    )
+                    NavigationBarItem(
+                        selected = tab == HomeTab.AI,
+                        onClick = { tab = HomeTab.AI },
+                        icon = { Icon(Icons.Default.Psychology, contentDescription = null) },
+                        label = { Text("IA") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = selectedColor,
+                            selectedTextColor = selectedColor,
+                            unselectedIconColor = unselectedColor,
+                            unselectedTextColor = unselectedColor,
+                            indicatorColor = indicator
+                        )
+                    )
 
                     NavigationBarItem(
                         selected = tab == HomeTab.PROFILE,
@@ -244,6 +273,8 @@ fun HomeScreen(onLogout: () -> Unit) {
                     HomeTab.FRIENDS -> FriendsScreen(modifier = Modifier.weight(1f))
                     HomeTab.STATS -> StatsScreen(modifier = Modifier.weight(1f))
                     HomeTab.RANKING -> RankingScreen(modifier = Modifier.weight(1f))
+                    HomeTab.ACHIEVEMENTS -> AchievementsScreen(modifier = Modifier.weight(1f))
+                    HomeTab.AI -> AIAssistantScreen(modifier = Modifier.weight(1f))
                     HomeTab.PROFILE -> ProfileScreen(modifier = Modifier.weight(1f))
                 }
             }

@@ -3,6 +3,7 @@ package com.example.hito4.data
 
 import android.content.Context
 import com.example.hito4.data.bd.DatabaseProvider
+import com.example.hito4.data.repo.AchievementsRepository
 import com.example.hito4.data.repo.AuthRepository
 import com.example.hito4.data.repo.StudySessionRepository
 import com.example.hito4.data.repo.SubjectRepository
@@ -16,6 +17,9 @@ class AppContainer(context: Context) {
     val userPreferences: UserPreferences = UserPreferences(context)
     val authRepository: AuthRepository = AuthRepository()
     val userRepository: UserRepository = UserRepository()
+
+    val achievementsRepository: AchievementsRepository = AchievementsRepository()
+    val chatDao = db.chatDao()
 
 
 

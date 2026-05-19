@@ -20,6 +20,7 @@ data class RegisterUiState(
     val fullName: String = "",
     val birthDate: String = "",
     val phone: String = "",
+    val educationLevel: String = "",
     // Paso 2
     val email: String = "",
     val nickname: String = "",
@@ -116,6 +117,10 @@ class RegisterViewModel(
                 _ui.update { it.copy(error = "El teléfono es obligatorio") }
                 false
             }
+            s.educationLevel.isBlank() -> {
+                _ui.update { it.copy(error = "El nivel educativo es obligatorio") }
+                false
+            }
             else -> true
         }
     }
@@ -175,6 +180,7 @@ class RegisterViewModel(
             false
         }
     }
+    fun onEducationLevelChange(value: String) = _ui.update { it.copy(educationLevel = value) }
 
     fun passwordStrength(password: String): Int {
         var score = 0
@@ -196,7 +202,8 @@ class RegisterViewModel(
                     fullName = s.fullName,
                     nickname = s.nickname,
                     phone = s.phone,
-                    birthDate = s.birthDate
+                    birthDate = s.birthDate,
+                    educationLevel = s.educationLevel
                 )
                 _ui.update { it.copy(isLoading = false, isSuccess = true) }
             } else {

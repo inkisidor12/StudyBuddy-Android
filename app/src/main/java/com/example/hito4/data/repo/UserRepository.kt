@@ -11,6 +11,7 @@ data class UserProfile(
     val fullName: String = "",
     val phone: String = "",
     val birthDate: String = "",
+    val educationLevel: String = "",
     val totalMinutes: Int = 0
 )
 
@@ -40,7 +41,8 @@ class UserRepository {
         fullName: String,
         nickname: String,
         phone: String,
-        birthDate: String
+        birthDate: String,
+        educationLevel: String
     ) {
         val user = auth.currentUser ?: return
         val profile = UserProfile(
@@ -49,7 +51,8 @@ class UserRepository {
             nickname = nickname.trim().lowercase(),
             fullName = fullName.trim(),
             phone = phone.trim(),
-            birthDate = birthDate
+            birthDate = birthDate,
+            educationLevel = educationLevel
         )
         db.collection("users").document(user.uid).set(profile).await()
     }

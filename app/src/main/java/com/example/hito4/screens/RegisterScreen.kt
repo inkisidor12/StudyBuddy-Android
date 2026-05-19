@@ -121,7 +121,9 @@ fun RegisterScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     when (step) {
-                        RegisterStep.PERSONAL -> Step1Personal(vm, state.fullName, state.birthDate, state.phone)
+                        RegisterStep.PERSONAL -> Step1Personal(
+                            vm, state.fullName, state.birthDate, state.phone, state.educationLevel
+                        )
                         RegisterStep.ACCOUNT -> Step2Account(vm, state.email, state.nickname, state.nicknameAvailable, state.checkingNickname)
                         RegisterStep.PASSWORD -> Step3Password(vm, state.password, state.confirmPassword, state.acceptedTerms)
                     }
@@ -152,13 +154,23 @@ fun RegisterScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Step1Personal(
     vm: RegisterViewModel,
     fullName: String,
     birthDate: String,
-    phone: String
+    phone: String,
+    educationLevel: String  // AÑADIR
 ) {
+    val niveles = listOf(
+        "1º ESO", "2º ESO", "3º ESO", "4º ESO",
+        "1º Bachillerato", "2º Bachillerato",
+        "FP Básica", "FP Grado Medio", "FP Grado Superior",
+        "1º Carrera", "2º Carrera", "3º Carrera", "4º Carrera", "Máster"
+    )
+    var expanded by remember { mutableStateOf(false) }
+
     Text("Datos personales", style = MaterialTheme.typography.titleLarge)
     Text("Cuéntanos quién eres", style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
@@ -188,6 +200,35 @@ private fun Step1Personal(
         modifier = Modifier.fillMaxWidth(),
         placeholder = { Text("+34 600 000 000") }
     )
+
+    // Dropdown nivel educativo
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            value = educationLevel,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Nivel educativo") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.fillMaxWidth().menuAnchor()
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            niveles.forEach { nivel ->
+                DropdownMenuItem(
+                    text = { Text(nivel) },
+                    onClick = {
+                        vm.onEducationLevelChange(nivel)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }
 
 @Composable
