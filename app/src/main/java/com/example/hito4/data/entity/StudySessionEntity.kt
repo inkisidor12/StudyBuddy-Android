@@ -11,5 +11,6 @@ data class StudySessionEntity(
     val startTimeMillis: Long,
     val endTimeMillis: Long,
     val plannedMinutes: Int,
-    val actualMinutes: Int
+    val actualMinutes: Int,
+    val uid: String = ""
 )

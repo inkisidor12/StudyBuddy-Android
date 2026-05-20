@@ -10,7 +10,6 @@ import com.example.hito4.data.dao.SubjectRankingRow
 import kotlinx.coroutines.tasks.await
 
 class StudySessionRepository(private val dao: StudySessionDao) {
-
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
@@ -22,19 +21,19 @@ class StudySessionRepository(private val dao: StudySessionDao) {
         actualMinutes: Int,
         subjectName: String = ""
     ) {
-        // Guardamos en Room (local)
+        val uid = auth.currentUser?.uid ?: return
+
         dao.insert(
             StudySessionEntity(
                 subjectId = subjectId,
                 startTimeMillis = startTimeMillis,
                 endTimeMillis = endTimeMillis,
                 plannedMinutes = plannedMinutes,
-                actualMinutes = actualMinutes
+                actualMinutes = actualMinutes,
+                uid = uid
             )
         )
 
-        // Guardamos en Firestore (para el feed social)
-        val uid = auth.currentUser?.uid ?: return
         val session = hashMapOf(
             "subjectId" to subjectId,
             "subjectName" to subjectName,
@@ -48,10 +47,18 @@ class StudySessionRepository(private val dao: StudySessionDao) {
         db.collection("sessions").add(session).await()
     }
 
-    fun observeTotalMinutes(): Flow<Int> = dao.observeTotalMinutes()
+    fun observeTotalMinutes(): Flow<Int> {
+        val uid = auth.currentUser?.uid ?: ""
+        return dao.observeTotalMinutes(uid)
+    }
 
-    fun observeSessions(): Flow<List<SessionWithSubjectName>> =
-        dao.observeSessionsWithSubjectName()
+    fun observeSessions(): Flow<List<SessionWithSubjectName>> {
+        val uid = auth.currentUser?.uid ?: ""
+        return dao.observeSessionsWithSubjectName(uid)
+    }
 
-    fun observeSubjectRanking(): Flow<List<SubjectRankingRow>> = dao.observeSubjectRanking()
+    fun observeSubjectRanking(): Flow<List<SubjectRankingRow>> {
+        val uid = auth.currentUser?.uid ?: ""
+        return dao.observeSubjectRanking(uid)
+    }
 }

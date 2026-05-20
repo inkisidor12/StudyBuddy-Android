@@ -7,9 +7,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SubjectDao {
-
-    @Query("SELECT * FROM subjects ORDER BY name")
-    fun observeAll(): Flow<List<SubjectEntity>>
+    @Query("SELECT * FROM subjects WHERE uid = :uid ORDER BY name")
+    fun observeAll(uid: String): Flow<List<SubjectEntity>>
 
     @Insert
     suspend fun insert(subject: SubjectEntity)

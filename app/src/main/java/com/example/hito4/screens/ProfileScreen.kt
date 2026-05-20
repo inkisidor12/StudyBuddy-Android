@@ -7,12 +7,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -22,7 +24,7 @@ import com.example.hito4.viewmodel.ProfileViewModel
 import com.example.hito4.viewmodel.ProfileViewModelFactory
 
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier) {
+fun ProfileScreen(modifier: Modifier = Modifier, onLogout: () -> Unit = {}) {
     val container = rememberAppContainer()
     val vm: ProfileViewModel = viewModel(
         factory = ProfileViewModelFactory(container.userRepository)
@@ -31,6 +33,26 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
     var editMode by remember { mutableStateOf(false) }
     var newNickname by remember { mutableStateOf("") }
     var newFullName by remember { mutableStateOf("") }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    // Diálogo de confirmación de logout
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Cerrar sesión") },
+            text = { Text("¿Seguro que quieres cerrar sesión?") },
+            confirmButton = {
+                TextButton(onClick = { onLogout() }) {
+                    Text("Cerrar sesión", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -40,7 +62,6 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Botón editar en la parte superior
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -169,6 +190,30 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
                     StatItem(value = "${state.currentStreak}", label = "Días de\nracha", emoji = "🔥")
                 }
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Botón cerrar sesión estilo red social
+        OutlinedButton(
+            onClick = { showLogoutDialog = true },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            ),
+            border = ButtonDefaults.outlinedButtonBorder.copy(
+                brush = androidx.compose.ui.graphics.SolidColor(
+                    MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                )
+            )
+        ) {
+            Icon(
+                Icons.Default.Logout,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text("Cerrar sesión")
         }
     }
 }

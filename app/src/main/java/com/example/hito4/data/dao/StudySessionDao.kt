@@ -26,11 +26,10 @@ interface StudySessionDao {
     @Insert
     suspend fun insert(session: StudySessionEntity)
 
-    @Query("SELECT COALESCE(SUM(actualMinutes), 0) FROM study_sessions")
-    fun observeTotalMinutes(): Flow<Int>
+    @Query("SELECT COALESCE(SUM(actualMinutes), 0) FROM study_sessions WHERE uid = :uid")
+    fun observeTotalMinutes(uid: String): Flow<Int>
 
-    @Query(
-        """
+    @Query("""
         SELECT ss.id as id,
                s.name as subjectName,
                ss.startTimeMillis as startTimeMillis,
@@ -39,23 +38,22 @@ interface StudySessionDao {
                ss.actualMinutes as actualMinutes
         FROM study_sessions ss
         INNER JOIN subjects s ON s.id = ss.subjectId
+        WHERE ss.uid = :uid
         ORDER BY ss.endTimeMillis DESC
-        """
-    )
-    fun observeSessionsWithSubjectName(): Flow<List<SessionWithSubjectName>>
-    @Query(
-        """
-    SELECT s.id as subjectId,
-           s.name as subjectName,
-           COALESCE(SUM(ss.actualMinutes), 0) as totalMinutes
-    FROM subjects s
-    LEFT JOIN study_sessions ss ON ss.subjectId = s.id
-    GROUP BY s.id, s.name
-    ORDER BY totalMinutes DESC, s.name ASC
-    """
-    )
-    fun observeSubjectRanking(): Flow<List<SubjectRankingRow>>
+    """)
+    fun observeSessionsWithSubjectName(uid: String): Flow<List<SessionWithSubjectName>>
 
+    @Query("""
+        SELECT s.id as subjectId,
+               s.name as subjectName,
+               COALESCE(SUM(ss.actualMinutes), 0) as totalMinutes
+        FROM subjects s
+        LEFT JOIN study_sessions ss ON ss.subjectId = s.id
+        WHERE s.uid = :uid
+        GROUP BY s.id, s.name
+        ORDER BY totalMinutes DESC, s.name ASC
+    """)
+    fun observeSubjectRanking(uid: String): Flow<List<SubjectRankingRow>>
 }
 
 

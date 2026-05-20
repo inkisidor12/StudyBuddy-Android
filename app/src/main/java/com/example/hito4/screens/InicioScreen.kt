@@ -20,9 +20,8 @@ import com.example.hito4.viewmodel.FriendsViewModel
 import com.example.hito4.viewmodel.FriendsViewModelFactory
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FriendsScreen(modifier: Modifier = Modifier) {
+fun InicioScreen(modifier: Modifier = Modifier) {
     val container = rememberAppContainer()
     val context = androidx.compose.ui.platform.LocalContext.current
     val vm: FriendsViewModel = viewModel(
@@ -32,57 +31,37 @@ fun FriendsScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Feed", "Amigos", "Solicitudes")
 
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Amigos 👥", color = MaterialTheme.colorScheme.onPrimary) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
+    Column(modifier = modifier.fillMaxSize()) {
+        TabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary
         ) {
-            // Tabs internas
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = {
-                            if (index == 2 && state.pendingRequests.isNotEmpty()) {
-                                // Badge en solicitudes
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(title)
-                                    Badge {
-                                        Text("${state.pendingRequests.size}")
-                                    }
-                                }
-                            } else {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = {
+                        if (index == 2 && state.pendingRequests.isNotEmpty()) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Text(title)
+                                Badge { Text("${state.pendingRequests.size}") }
                             }
+                        } else {
+                            Text(title)
                         }
-                    )
-                }
+                    }
+                )
             }
+        }
 
-            when (selectedTab) {
-                0 -> FeedTab(state = state)
-                1 -> FriendsTab(state = state, vm = vm)
-                2 -> RequestsTab(state = state, vm = vm)
-            }
+        when (selectedTab) {
+            0 -> FeedTab(state = state)
+            1 -> FriendsTab(state = state, vm = vm)
+            2 -> RequestsTab(state = state, vm = vm)
         }
     }
 }
@@ -155,7 +134,6 @@ private fun FriendsTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Buscador
         item {
             ForestCard(modifier = Modifier.fillMaxWidth()) {
                 Text("Buscar amigos", style = MaterialTheme.typography.titleMedium)
@@ -242,7 +220,6 @@ private fun FriendsTab(
             }
         }
 
-        // Lista de amigos
         item {
             Text(
                 "Mis amigos (${state.friends.size})",

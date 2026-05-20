@@ -11,7 +11,7 @@ import com.example.hito4.data.entity.ChatMessage
 
 @Database(
     entities = [SubjectEntity::class, StudySessionEntity::class, ChatMessage::class],
-    version = 2  // subimos versión porque añadimos tabla
+    version = 3
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun subjectDao(): SubjectDao

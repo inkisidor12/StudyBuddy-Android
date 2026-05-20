@@ -23,6 +23,12 @@ object DatabaseProvider {
             )
         }
     }
+    private val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE subjects ADD COLUMN uid TEXT NOT NULL DEFAULT ''")
+            database.execSQL("ALTER TABLE study_sessions ADD COLUMN uid TEXT NOT NULL DEFAULT ''")
+        }
+    }
 
     fun get(context: Context): AppDatabase {
         return INSTANCE ?: synchronized(this) {
@@ -32,6 +38,7 @@ object DatabaseProvider {
                 "studybuddy.db"
             )
                 .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
             INSTANCE = instance
             instance

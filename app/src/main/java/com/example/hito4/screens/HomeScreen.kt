@@ -8,13 +8,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,13 +29,14 @@ import com.example.hito4.viewmodel.HomeViewModel
 import com.example.hito4.viewmodel.HomeViewModelFactory
 import com.example.hito4.viewmodel.LoginViewModel
 import com.example.hito4.viewmodel.LoginViewModelFactory
-import androidx.compose.material.icons.filled.Star
 
-private enum class HomeTab { SUBJECTS, FOCUS, FRIENDS, STATS, RANKING, ACHIEVEMENTS, AI, PROFILE }
+private enum class HomeTab { INICIO, ESTUDIAR, STATS, AI, PROFILE }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onLogout: () -> Unit) {
-    var tab by remember { mutableStateOf(HomeTab.SUBJECTS) }
+    var tab by remember { mutableStateOf(HomeTab.INICIO) }
+    var bannerVisible by remember { mutableStateOf(true) }
 
     val container = rememberAppContainer()
 
@@ -53,8 +52,6 @@ fun HomeScreen(onLogout: () -> Unit) {
     )
     val homeState by homeVm.ui.collectAsState()
 
-
-
     ForestBackground {
         Scaffold(
             topBar = {
@@ -62,19 +59,7 @@ fun HomeScreen(onLogout: () -> Unit) {
                     title = { Text("StudyBuddy 🌲", color = MaterialTheme.colorScheme.onPrimary) },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    actions = {
-                        IconButton(onClick = {
-                            loginVm.logout()
-                            onLogout()
-                        }) {
-                            Icon(
-                                Icons.Default.Logout,
-                                contentDescription = "Cerrar sesión",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
+                    )
                 )
             },
             bottomBar = {
@@ -87,24 +72,10 @@ fun HomeScreen(onLogout: () -> Unit) {
                     val indicator = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)
 
                     NavigationBarItem(
-                        selected = tab == HomeTab.SUBJECTS,
-                        onClick = { tab = HomeTab.SUBJECTS },
-                        icon = { Icon(Icons.Default.List, contentDescription = null) },
-                        label = { Text("Asignaturas") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = selectedColor,
-                            selectedTextColor = selectedColor,
-                            unselectedIconColor = unselectedColor,
-                            unselectedTextColor = unselectedColor,
-                            indicatorColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.20f)
-                        )
-                    )
-
-                    NavigationBarItem(
-                        selected = tab == HomeTab.FOCUS,
-                        onClick = { tab = HomeTab.FOCUS },
-                        icon = { Icon(Icons.Default.Timer, contentDescription = null) },
-                        label = { Text("Focus") },
+                        selected = tab == HomeTab.INICIO,
+                        onClick = { tab = HomeTab.INICIO },
+                        icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                        label = { Text("Inicio") },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = selectedColor,
                             selectedTextColor = selectedColor,
@@ -113,12 +84,11 @@ fun HomeScreen(onLogout: () -> Unit) {
                             indicatorColor = indicator
                         )
                     )
-
                     NavigationBarItem(
-                        selected = tab == HomeTab.FRIENDS,
-                        onClick = { tab = HomeTab.FRIENDS },
-                        icon = { Icon(Icons.Default.People, contentDescription = null) },
-                        label = { Text("Amigos") },
+                        selected = tab == HomeTab.ESTUDIAR,
+                        onClick = { tab = HomeTab.ESTUDIAR },
+                        icon = { Icon(Icons.Default.MenuBook, contentDescription = null) },
+                        label = { Text("Estudiar") },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = selectedColor,
                             selectedTextColor = selectedColor,
@@ -127,39 +97,11 @@ fun HomeScreen(onLogout: () -> Unit) {
                             indicatorColor = indicator
                         )
                     )
-
                     NavigationBarItem(
                         selected = tab == HomeTab.STATS,
                         onClick = { tab = HomeTab.STATS },
                         icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
                         label = { Text("Stats") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = selectedColor,
-                            selectedTextColor = selectedColor,
-                            unselectedIconColor = unselectedColor,
-                            unselectedTextColor = unselectedColor,
-                            indicatorColor = indicator
-                        )
-                    )
-
-                    NavigationBarItem(
-                        selected = tab == HomeTab.RANKING,
-                        onClick = { tab = HomeTab.RANKING },
-                        icon = { Icon(Icons.Default.EmojiEvents, contentDescription = null) },
-                        label = { Text("Ranking") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = selectedColor,
-                            selectedTextColor = selectedColor,
-                            unselectedIconColor = unselectedColor,
-                            unselectedTextColor = unselectedColor,
-                            indicatorColor = indicator
-                        )
-                    )
-                    NavigationBarItem(
-                        selected = tab == HomeTab.ACHIEVEMENTS,
-                        onClick = { tab = HomeTab.ACHIEVEMENTS },
-                        icon = { Icon(Icons.Default.Star, contentDescription = null) },
-                        label = { Text("Logros") },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = selectedColor,
                             selectedTextColor = selectedColor,
@@ -181,7 +123,6 @@ fun HomeScreen(onLogout: () -> Unit) {
                             indicatorColor = indicator
                         )
                     )
-
                     NavigationBarItem(
                         selected = tab == HomeTab.PROFILE,
                         onClick = { tab = HomeTab.PROFILE },
@@ -203,9 +144,11 @@ fun HomeScreen(onLogout: () -> Unit) {
                     .padding(padding)
                     .fillMaxSize()
             ) {
-                // Banner de racha
+                // Banner solo en INICIO y ESTUDIAR
                 AnimatedVisibility(
-                    visible = homeState.currentStreak > 0,
+                    visible = homeState.currentStreak > 0
+                            && bannerVisible
+                            && (tab == HomeTab.INICIO || tab == HomeTab.ESTUDIAR),
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
@@ -227,7 +170,8 @@ fun HomeScreen(onLogout: () -> Unit) {
                     ) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(
                                 text = when {
@@ -259,23 +203,37 @@ fun HomeScreen(onLogout: () -> Unit) {
                                 )
                             }
                         }
-                        Text(
-                            text = "${homeState.totalMinutes} min",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "${homeState.totalMinutes} min",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            IconButton(
+                                onClick = { bannerVisible = false },
+                                modifier = Modifier.size(20.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Cerrar",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                                )
+                            }
+                        }
                     }
                 }
 
                 when (tab) {
-                    HomeTab.SUBJECTS -> SubjectsScreen(modifier = Modifier.weight(1f))
-                    HomeTab.FOCUS -> FocusScreen(modifier = Modifier.weight(1f))
-                    HomeTab.FRIENDS -> FriendsScreen(modifier = Modifier.weight(1f))
+                    HomeTab.INICIO -> InicioScreen(modifier = Modifier.weight(1f))
+                    HomeTab.ESTUDIAR -> EstudiarScreen(modifier = Modifier.weight(1f))
                     HomeTab.STATS -> StatsScreen(modifier = Modifier.weight(1f))
-                    HomeTab.RANKING -> RankingScreen(modifier = Modifier.weight(1f))
-                    HomeTab.ACHIEVEMENTS -> AchievementsScreen(modifier = Modifier.weight(1f))
                     HomeTab.AI -> AIAssistantScreen(modifier = Modifier.weight(1f))
-                    HomeTab.PROFILE -> ProfileScreen(modifier = Modifier.weight(1f))
+                    HomeTab.PROFILE -> ProfileScreen(
+                        modifier = Modifier.weight(1f),
+                        onLogout = { loginVm.logout(); onLogout() }
+                    )
                 }
             }
         }
