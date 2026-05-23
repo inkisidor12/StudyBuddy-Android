@@ -1,11 +1,12 @@
 package com.example.hito4.viewmodel
 
-
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.hito4.data.entity.SubjectEntity
 import com.example.hito4.data.repo.StudySessionRepository
 import com.example.hito4.data.repo.SubjectRepository
+import com.example.hito4.data.repo.UserRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -14,7 +15,8 @@ import kotlin.math.max
 
 class FocusViewModelV2(
     private val subjectRepo: SubjectRepository,
-    private val sessionRepo: StudySessionRepository
+    private val sessionRepo: StudySessionRepository,
+    private val userRepo: UserRepository
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(FocusUiState())
@@ -23,7 +25,6 @@ class FocusViewModelV2(
     private var timerJob: Job? = null
 
     init {
-        // Observamos asignaturas desde Room y las metemos en el estado
         viewModelScope.launch {
             subjectRepo.observeSubjects().collect { list ->
                 _ui.update { current ->
@@ -31,6 +32,10 @@ class FocusViewModelV2(
                     current.copy(subjects = list, selectedSubject = selected)
                 }
             }
+        }
+        viewModelScope.launch {
+            val profile = userRepo.getCurrentUserProfile()
+            _ui.update { it.copy(nickname = profile?.nickname ?: "") }
         }
     }
 
@@ -76,7 +81,6 @@ class FocusViewModelV2(
         if (current.isRunning) return
         if (current.remainingSeconds <= 0) return
 
-        // Si no hay asignatura seleccionada, seleccionamos la primera
         val selected = current.selectedSubject ?: current.subjects.first()
 
         _ui.update {
@@ -94,8 +98,6 @@ class FocusViewModelV2(
                 delay(1000)
                 _ui.update { s -> s.copy(remainingSeconds = s.remainingSeconds - 1) }
             }
-
-            // Si llegó a 0 mientras seguía en running -> finaliza y guarda
             val endState = _ui.value
             if (endState.isRunning && endState.remainingSeconds <= 0) {
                 finishAndSave()
@@ -118,9 +120,14 @@ class FocusViewModelV2(
                 remainingSeconds = current.plannedMinutes * 60,
                 isRunning = false,
                 isFinished = false,
-                startMillis = null
+                startMillis = null,
+                showShareDialog = false
             )
         }
+    }
+
+    fun dismissShareDialog() {
+        _ui.update { it.copy(showShareDialog = false) }
     }
 
     private fun finishAndSave() {
@@ -131,7 +138,14 @@ class FocusViewModelV2(
         val subject = state.selectedSubject
         val start = state.startMillis
 
-        _ui.update { it.copy(isRunning = false, isFinished = true) }
+        _ui.update {
+            it.copy(
+                isRunning = false,
+                isFinished = true,
+                showShareDialog = true,
+                lastSessionMinutes = state.plannedMinutes
+            )
+        }
 
         if (subject != null && start != null) {
             viewModelScope.launch {
@@ -145,5 +159,19 @@ class FocusViewModelV2(
                 )
             }
         }
+    }
+}
+
+class FocusViewModelV2Factory(
+    private val subjectRepo: SubjectRepository,
+    private val sessionRepo: StudySessionRepository,
+    private val userRepo: UserRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(FocusViewModelV2::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return FocusViewModelV2(subjectRepo, sessionRepo, userRepo) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

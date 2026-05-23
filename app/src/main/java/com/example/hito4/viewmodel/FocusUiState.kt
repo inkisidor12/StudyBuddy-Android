@@ -1,6 +1,5 @@
 package com.example.hito4.viewmodel
 
-
 import com.example.hito4.data.entity.SubjectEntity
 
 data class FocusUiState(
@@ -11,5 +10,8 @@ data class FocusUiState(
     val remainingSeconds: Int = 25 * 60,
     val isRunning: Boolean = false,
     val isFinished: Boolean = false,
-    val startMillis: Long? = null
+    val startMillis: Long? = null,
+    val nickname: String = "",
+    val showShareDialog: Boolean = false,
+    val lastSessionMinutes: Int = 0
 )
