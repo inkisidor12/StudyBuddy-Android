@@ -76,6 +76,10 @@ private fun StatsContent() {
         factory = StatsViewModelFactory(container.userRepository)
     )
     val state by vm.ui.collectAsState()
+    LaunchedEffect(Unit) {
+        vm.refresh()
+    }
+
 
     Column(
         modifier = Modifier
@@ -158,6 +162,10 @@ private fun RankingContent() {
         factory = RankingViewModelFactory(container.userRepository)
     )
     val ranking by vm.ranking.collectAsState()
+    LaunchedEffect(Unit) {
+        vm.refresh()
+    }
+
 
     Column(
         modifier = Modifier

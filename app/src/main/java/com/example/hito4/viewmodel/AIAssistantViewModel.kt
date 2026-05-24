@@ -42,7 +42,8 @@ class AIAssistantViewModel(
 
     private fun loadMessages() {
         viewModelScope.launch {
-            chatDao.getAllMessages().collect { messages ->
+            val uid = userRepository.getCurrentUserProfile()?.uid ?: ""
+            chatDao.getAllMessages(uid).collect { messages ->
                 _ui.update { it.copy(messages = messages) }
             }
         }
@@ -62,10 +63,10 @@ class AIAssistantViewModel(
         if (text.isBlank() || _ui.value.isLoading) return
 
         viewModelScope.launch {
-            val userMsg = ChatMessage(role = "user", content = text)
+            val uid = userRepository.getCurrentUserProfile()?.uid ?: ""
+            val userMsg = ChatMessage(role = "user", content = text, uid = uid)
             chatDao.insert(userMsg)
 
-            // Construimos el historial manualmente incluyendo el mensaje nuevo
             val historial = _ui.value.messages.toMutableList()
             historial.add(userMsg)
 
@@ -73,7 +74,7 @@ class AIAssistantViewModel(
 
             try {
                 val response = callClaude(historial, _ui.value.educationLevel)
-                val assistantMsg = ChatMessage(role = "assistant", content = response)
+                val assistantMsg = ChatMessage(role = "assistant", content = response, uid = uid)
                 chatDao.insert(assistantMsg)
             } catch (e: Exception) {
                 android.util.Log.e("AIAssistant", "Error: ${e.message}", e)
@@ -86,7 +87,8 @@ class AIAssistantViewModel(
 
     fun clearChat() {
         viewModelScope.launch {
-            chatDao.clearAll()
+            val uid = userRepository.getCurrentUserProfile()?.uid ?: ""
+            chatDao.clearAll(uid)
         }
     }
 

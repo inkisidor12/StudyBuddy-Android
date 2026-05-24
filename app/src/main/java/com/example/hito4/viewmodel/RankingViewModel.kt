@@ -24,6 +24,9 @@ class RankingViewModel(private val userRepo: UserRepository) : ViewModel() {
             _ranking.value = userRepo.getRankingFromFirestore()
         }
     }
+    fun refresh() {
+        loadRanking()
+    }
 }
 
 class RankingViewModelFactory(
