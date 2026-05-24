@@ -43,7 +43,10 @@ fun HomeScreen(onLogout: () -> Unit) {
     val loginVm: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(
             container.authRepository,
-            container.userPreferences
+            container.userPreferences,
+            container.subjectRepository,
+            container.studySessionRepository  // añade esto
+
         )
     )
 

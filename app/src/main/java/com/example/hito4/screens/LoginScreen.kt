@@ -21,7 +21,10 @@ fun LoginScreen(
     val vm: LoginViewModel = viewModel(
         factory = LoginViewModelFactory(
             container.authRepository,
-            container.userPreferences
+            container.userPreferences,
+            container.subjectRepository,
+            container.studySessionRepository
+
         )
     )
 

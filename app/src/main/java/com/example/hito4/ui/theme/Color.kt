@@ -2,18 +2,16 @@ package com.example.hito4.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Forest palette (sugerencia: verdes + tierra)
-val ForestGreenDark = Color(0xFF0F2A1D)
-val ForestGreen = Color(0xFF1E4D2B)
-val ForestGreenLight = Color(0xFF3A7D44)
+// Nueva paleta StudyBuddy — Verde forestal moderno
+val ForestDark = Color(0xFF1A3A2A)
+val ForestMedium = Color(0xFF2D6A4F)
+val ForestLight = Color(0xFF52B788)
 
-val Moss = Color(0xFF5B8C5A)
-val Leaf = Color(0xFF7FB069)
+val MintAccent = Color(0xFF95D5B2)
+val MintSoft = Color(0xFFB7E4C7)
+val MintPale = Color(0xFFD8F3DC)
 
-val Bark = Color(0xFF6B4F3A)
-val Sand = Color(0xFFF2E9D8)
-
-val SurfaceDark = Color(0xFF101815)
-val SurfaceLight = Color(0xFFF7FAF6)
+val SurfaceDark = Color(0xFF0D1F17)
+val SurfaceLight = Color(0xFFF0FAF4)
 
 val ErrorRed = Color(0xFFB3261E)

@@ -31,15 +31,19 @@ class ProfileViewModel(
         loadProfile()
     }
 
+    fun refresh() {
+        loadProfile()
+    }
     private fun loadProfile() {
         viewModelScope.launch {
             _ui.update { it.copy(isLoading = true) }
             val profile = userRepository.getCurrentUserProfile()
             val totalSessions = userRepository.getTotalSessions()
+            val totalMinutes = userRepository.getTotalMinutesFromSessions()
             val streak = userRepository.getCurrentStreak()
             _ui.update {
                 it.copy(
-                    profile = profile,
+                    profile = profile?.copy(totalMinutes = totalMinutes),
                     totalSessions = totalSessions,
                     currentStreak = streak,
                     isLoading = false

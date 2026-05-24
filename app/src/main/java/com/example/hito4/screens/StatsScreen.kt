@@ -73,10 +73,9 @@ fun StatsScreen(modifier: Modifier = Modifier) {
 private fun StatsContent() {
     val container = rememberAppContainer()
     val vm: StatsViewModel = viewModel(
-        factory = StatsViewModelFactory(container.studySessionRepository)
+        factory = StatsViewModelFactory(container.userRepository)
     )
-    val totalMinutes by vm.totalMinutes.collectAsState()
-    val sessions by vm.sessions.collectAsState()
+    val state by vm.ui.collectAsState()
 
     Column(
         modifier = Modifier
@@ -84,61 +83,67 @@ private fun StatsContent() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        ForestCard(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("📚", fontSize = 28.sp)
-                    Text(
-                        "$totalMinutes",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        "Minutos totales",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("✅", fontSize = 28.sp)
-                    Text(
-                        "${sessions.size}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        "Sesiones",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-            }
-        }
-
-        Text("Historial de sesiones", style = MaterialTheme.typography.titleMedium)
-
-        if (sessions.isEmpty()) {
-            ForestCard(modifier = Modifier.fillMaxWidth()) {
-                Text("Aún no hay sesiones.")
-                Text("Completa una sesión en Focus para verla aquí.")
+        if (state.isLoading) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(sessions) { s ->
-                    ForestCard(modifier = Modifier.fillMaxWidth()) {
-                        Text(s.subjectName, style = MaterialTheme.typography.titleMedium)
-                        Spacer(Modifier.height(6.dp))
-                        Text("Real: ${s.actualMinutes} min | Plan: ${s.plannedMinutes} min")
-                        Text("Inicio: ${formatMillis(s.startTimeMillis)}")
-                        Text("Fin: ${formatMillis(s.endTimeMillis)}")
+            ForestCard(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("📚", fontSize = 28.sp)
+                        Text(
+                            "${state.totalMinutes}",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            "Minutos totales",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("✅", fontSize = 28.sp)
+                        Text(
+                            "${state.totalSessions}",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            "Sesiones",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+
+            Text("Historial de sesiones", style = MaterialTheme.typography.titleMedium)
+
+            if (state.sessions.isEmpty()) {
+                ForestCard(modifier = Modifier.fillMaxWidth()) {
+                    Text("Aún no hay sesiones.")
+                    Text("Completa una sesión en Focus para verla aquí.")
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(state.sessions) { s ->
+                        ForestCard(modifier = Modifier.fillMaxWidth()) {
+                            Text(s.subjectName, style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.height(6.dp))
+                            Text("Real: ${s.actualMinutes} min | Plan: ${s.plannedMinutes} min")
+                            Text("Inicio: ${formatMillis(s.startTimeMillis)}")
+                            Text("Fin: ${formatMillis(s.endTimeMillis)}")
+                        }
                     }
                 }
             }
@@ -150,7 +155,7 @@ private fun StatsContent() {
 private fun RankingContent() {
     val container = rememberAppContainer()
     val vm: RankingViewModel = viewModel(
-        factory = RankingViewModelFactory(container.studySessionRepository)
+        factory = RankingViewModelFactory(container.userRepository)
     )
     val ranking by vm.ranking.collectAsState()
 

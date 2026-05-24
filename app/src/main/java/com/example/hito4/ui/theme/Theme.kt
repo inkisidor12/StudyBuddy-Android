@@ -12,37 +12,43 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Leaf,
-    secondary = Moss,
-    tertiary = ForestGreenLight,
+    primary = MintAccent,
+    secondary = ForestLight,
+    tertiary = MintSoft,
 
-    background = ForestGreenDark,
-    surface = SurfaceDark,
+    background = SurfaceDark,
+    surface = ForestDark,
 
-    onPrimary = ForestGreenDark,
-    onSecondary = ForestGreenDark,
-    onTertiary = ForestGreenDark,
+    onPrimary = ForestDark,
+    onSecondary = ForestDark,
+    onTertiary = ForestDark,
 
-    onBackground = Sand,
-    onSurface = Sand,
+    onBackground = MintPale,
+    onSurface = MintPale,
+
+    primaryContainer = ForestMedium,
+    onPrimaryContainer = MintPale,
 
     error = ErrorRed
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ForestGreen,
-    secondary = Moss,
-    tertiary = Leaf,
+    primary = ForestMedium,
+    secondary = ForestLight,
+    tertiary = MintAccent,
 
     background = SurfaceLight,
     surface = Color(0xFFFFFFFF),
 
     onPrimary = Color(0xFFFFFFFF),
     onSecondary = Color(0xFFFFFFFF),
-    onTertiary = ForestGreenDark,
+    onTertiary = ForestDark,
 
-    onBackground = ForestGreenDark,
-    onSurface = ForestGreenDark,
+    onBackground = ForestDark,
+    onSurface = ForestDark,
+
+    primaryContainer = MintPale,
+    onPrimaryContainer = ForestDark,
 
     error = ErrorRed
 )
@@ -50,7 +56,6 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun Hito4Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Si quieres forzar a nuestro tema Forest siempre, pon esto en false:
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

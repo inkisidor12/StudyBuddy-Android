@@ -54,6 +54,8 @@ interface StudySessionDao {
         ORDER BY totalMinutes DESC, s.name ASC
     """)
     fun observeSubjectRanking(uid: String): Flow<List<SubjectRankingRow>>
+    @Query("SELECT COUNT(*) FROM study_sessions WHERE uid = :uid")
+    suspend fun countByUid(uid: String): Int
 }
 
 

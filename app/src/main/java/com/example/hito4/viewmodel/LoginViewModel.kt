@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.hito4.data.UserPreferences
 import com.example.hito4.data.repo.AuthRepository
+import com.example.hito4.data.repo.StudySessionRepository
+import com.example.hito4.data.repo.SubjectRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +21,9 @@ data class LoginUiState(
 
 class LoginViewModel(
     private val authRepository: AuthRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val subjectRepository: SubjectRepository,
+    private val sessionRepository: StudySessionRepository
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(LoginUiState())
@@ -31,10 +35,17 @@ class LoginViewModel(
             val result = authRepository.login(email, password)
             if (result.isSuccess) {
                 userPreferences.saveUsername(result.getOrNull()?.email ?: "")
+                // Sincronizar asignaturas desde Firestore si Room está vacío
+                subjectRepository.syncFromFirestore()
+                sessionRepository.syncFromFirestore()
                 _ui.value = LoginUiState(isSuccess = true)
             } else {
                 _ui.value = LoginUiState(
-                    error = result.exceptionOrNull()?.message ?: "Error al iniciar sesión"
+                    error = when {
+                        result.exceptionOrNull()?.message?.contains("credential") == true -> "Email o contraseña incorrectos"
+                        result.exceptionOrNull()?.message?.contains("network") == true -> "Error de conexión, comprueba tu internet"
+                        else -> "Error al iniciar sesión, inténtalo de nuevo"
+                    }
                 )
             }
         }
@@ -69,12 +80,14 @@ class LoginViewModel(
 
 class LoginViewModelFactory(
     private val authRepository: AuthRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val subjectRepository: SubjectRepository,
+    private val sessionRepository: StudySessionRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LoginViewModel(authRepository, userPreferences) as T
+            return LoginViewModel(authRepository, userPreferences, subjectRepository, sessionRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

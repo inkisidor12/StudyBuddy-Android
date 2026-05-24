@@ -3,6 +3,8 @@ package com.example.hito4.data.repo
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import com.example.hito4.data.dao.SessionWithSubjectName
+import com.example.hito4.data.dao.SubjectRankingRow
 
 data class UserProfile(
     val uid: String = "",
@@ -55,6 +57,56 @@ class UserRepository {
             educationLevel = educationLevel
         )
         db.collection("users").document(user.uid).set(profile).await()
+    }
+    suspend fun getTotalMinutesFromSessions(): Int {
+        val uid = auth.currentUser?.uid ?: return 0
+        val result = db.collection("sessions")
+            .whereEqualTo("uid", uid)
+            .get()
+            .await()
+        return result.documents.sumOf {
+            (it.getLong("actualMinutes") ?: 0L).toInt()
+        }
+    }
+    suspend fun getSessionsFromFirestore(): List<SessionWithSubjectName> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        val result = db.collection("sessions")
+            .whereEqualTo("uid", uid)
+            .get()
+            .await()
+        return result.documents.mapNotNull { doc ->
+            val subjectName = doc.getString("subjectName") ?: return@mapNotNull null
+            val startTimeMillis = doc.getLong("startTimeMillis") ?: 0L
+            val endTimeMillis = doc.getLong("endTimeMillis") ?: 0L
+            val plannedMinutes = (doc.getLong("plannedMinutes") ?: 0L).toInt()
+            val actualMinutes = (doc.getLong("actualMinutes") ?: 0L).toInt()
+            SessionWithSubjectName(
+                id = 0L,
+                subjectName = subjectName,
+                startTimeMillis = startTimeMillis,
+                endTimeMillis = endTimeMillis,
+                plannedMinutes = plannedMinutes,
+                actualMinutes = actualMinutes
+            )
+        }.sortedByDescending { it.endTimeMillis } // ordenamos en memoria
+    }
+
+    suspend fun getRankingFromFirestore(): List<SubjectRankingRow> {
+        val uid = auth.currentUser?.uid ?: return emptyList()
+        val result = db.collection("sessions")
+            .whereEqualTo("uid", uid)
+            .get()
+            .await()
+        return result.documents
+            .groupBy { it.getString("subjectName") ?: "" }
+            .map { (subjectName, docs) ->
+                SubjectRankingRow(
+                    subjectId = 0L,
+                    subjectName = subjectName,
+                    totalMinutes = docs.sumOf { (it.getLong("actualMinutes") ?: 0L).toInt() }
+                )
+            }
+            .sortedByDescending { it.totalMinutes }
     }
 
     suspend fun searchUserByNickname(nickname: String): UserProfile? {

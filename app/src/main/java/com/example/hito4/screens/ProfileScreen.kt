@@ -34,6 +34,9 @@ fun ProfileScreen(modifier: Modifier = Modifier, onLogout: () -> Unit = {}) {
     var newNickname by remember { mutableStateOf("") }
     var newFullName by remember { mutableStateOf("") }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        vm.refresh()
+    }
 
     // Diálogo de confirmación de logout
     if (showLogoutDialog) {

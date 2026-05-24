@@ -23,6 +23,7 @@ class StudySessionRepository(private val dao: StudySessionDao) {
     ) {
         val uid = auth.currentUser?.uid ?: return
 
+        // Guardar en Room
         dao.insert(
             StudySessionEntity(
                 subjectId = subjectId,
@@ -34,6 +35,7 @@ class StudySessionRepository(private val dao: StudySessionDao) {
             )
         )
 
+        // Guardar en Firestore
         val session = hashMapOf(
             "subjectId" to subjectId,
             "subjectName" to subjectName,
@@ -45,6 +47,17 @@ class StudySessionRepository(private val dao: StudySessionDao) {
             "timestamp" to System.currentTimeMillis()
         )
         db.collection("sessions").add(session).await()
+
+        // Recalcular totalMinutes sumando TODAS las sesiones reales de Firestore
+        val allSessions = db.collection("sessions")
+            .whereEqualTo("uid", uid)
+            .get()
+            .await()
+        val totalMinutes = allSessions.documents.sumOf {
+            (it.getLong("actualMinutes") ?: 0L).toInt()
+        }
+        db.collection("users").document(uid)
+            .update("totalMinutes", totalMinutes).await()
     }
 
     fun observeTotalMinutes(): Flow<Int> {
@@ -60,5 +73,40 @@ class StudySessionRepository(private val dao: StudySessionDao) {
     fun observeSubjectRanking(): Flow<List<SubjectRankingRow>> {
         val uid = auth.currentUser?.uid ?: ""
         return dao.observeSubjectRanking(uid)
+    }
+
+    suspend fun syncFromFirestore() {
+        val uid = auth.currentUser?.uid ?: return
+
+        val localCount = dao.countByUid(uid)
+        if (localCount > 0) return
+
+        try {
+            val result = db.collection("sessions")
+                .whereEqualTo("uid", uid)
+                .get()
+                .await()
+
+            result.documents.forEach { doc ->
+                val subjectId = doc.getLong("subjectId") ?: 0L
+                val startTimeMillis = doc.getLong("startTimeMillis") ?: 0L
+                val endTimeMillis = doc.getLong("endTimeMillis") ?: 0L
+                val plannedMinutes = (doc.getLong("plannedMinutes") ?: 0L).toInt()
+                val actualMinutes = (doc.getLong("actualMinutes") ?: 0L).toInt()
+
+                dao.insert(
+                    StudySessionEntity(
+                        subjectId = subjectId,
+                        startTimeMillis = startTimeMillis,
+                        endTimeMillis = endTimeMillis,
+                        plannedMinutes = plannedMinutes,
+                        actualMinutes = actualMinutes,
+                        uid = uid
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("SessionRepo", "Error sincronizando sesiones: ${e.message}")
+        }
     }
 }
