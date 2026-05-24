@@ -12,14 +12,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hito4.ui.ForestCard
 import com.example.hito4.ui.rememberAppContainer
+import com.example.hito4.viewmodel.FriendsUiState
 import com.example.hito4.viewmodel.FriendsViewModel
 import com.example.hito4.viewmodel.FriendsViewModelFactory
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InicioScreen(modifier: Modifier = Modifier) {
     val container = rememberAppContainer()
@@ -30,49 +33,68 @@ fun InicioScreen(modifier: Modifier = Modifier) {
     val state by vm.ui.collectAsState()
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Feed", "Amigos", "Solicitudes")
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    Column(modifier = modifier.fillMaxSize()) {
-        TabRow(
-            selectedTabIndex = selectedTab,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.primary
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedTab == index,
-                    onClick = { selectedTab = index },
-                    text = {
-                        if (index == 2 && state.pendingRequests.isNotEmpty()) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(title)
-                                Badge { Text("${state.pendingRequests.size}") }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+    ) {
+        TopAppBar(
+            title = {
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = {
+                                if (index == 2 && state.pendingRequests.isNotEmpty()) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(title)
+                                        Badge { Text("${state.pendingRequests.size}") }
+                                    }
+                                } else {
+                                    Text(title)
+                                }
                             }
-                        } else {
-                            Text(title)
-                        }
+                        )
                     }
-                )
-            }
-        }
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            scrollBehavior = scrollBehavior
+        )
 
         when (selectedTab) {
-            0 -> FeedTab(state = state)
-            1 -> FriendsTab(state = state, vm = vm)
-            2 -> RequestsTab(state = state, vm = vm)
+            0 -> FeedTab(state = state, scrollBehavior = scrollBehavior)
+            1 -> FriendsTab(state = state, vm = vm, scrollBehavior = scrollBehavior)
+            2 -> RequestsTab(state = state, vm = vm, scrollBehavior = scrollBehavior)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FeedTab(state: com.example.hito4.viewmodel.FriendsUiState) {
+private fun FeedTab(
+    state: FriendsUiState,
+    scrollBehavior: TopAppBarScrollBehavior
+) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp)
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(vertical = 16.dp)
     ) {
         item {
             Text("Actividad reciente", style = MaterialTheme.typography.titleLarge)
@@ -123,16 +145,20 @@ private fun FeedTab(state: com.example.hito4.viewmodel.FriendsUiState) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FriendsTab(
-    state: com.example.hito4.viewmodel.FriendsUiState,
-    vm: FriendsViewModel
+    state: FriendsUiState,
+    vm: FriendsViewModel,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp)
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(vertical = 16.dp)
     ) {
         item {
             ForestCard(modifier = Modifier.fillMaxWidth()) {
@@ -265,16 +291,20 @@ private fun FriendsTab(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RequestsTab(
-    state: com.example.hito4.viewmodel.FriendsUiState,
-    vm: FriendsViewModel
+    state: FriendsUiState,
+    vm: FriendsViewModel,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp)
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(vertical = 16.dp)
     ) {
         item {
             Text("Solicitudes pendientes", style = MaterialTheme.typography.titleLarge)

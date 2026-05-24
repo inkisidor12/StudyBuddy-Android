@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,120 +35,134 @@ import java.util.Locale
 
 private enum class StatsTab { STATS, RANKING, LOGROS }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(modifier: Modifier = Modifier) {
     var tab by remember { mutableStateOf(StatsTab.STATS) }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-    Column(modifier = modifier.fillMaxSize()) {
-        TabRow(
-            selectedTabIndex = tab.ordinal,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.primary
-        ) {
-            Tab(
-                selected = tab == StatsTab.STATS,
-                onClick = { tab = StatsTab.STATS },
-                text = { Text("Estadísticas") }
-            )
-            Tab(
-                selected = tab == StatsTab.RANKING,
-                onClick = { tab = StatsTab.RANKING },
-                text = { Text("Ranking") }
-            )
-            Tab(
-                selected = tab == StatsTab.LOGROS,
-                onClick = { tab = StatsTab.LOGROS },
-                text = { Text("Logros") }
-            )
-        }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+    ) {
+        TopAppBar(
+            title = {
+                TabRow(
+                    selectedTabIndex = tab.ordinal,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Tab(
+                        selected = tab == StatsTab.STATS,
+                        onClick = { tab = StatsTab.STATS },
+                        text = { Text("Estadísticas") }
+                    )
+                    Tab(
+                        selected = tab == StatsTab.RANKING,
+                        onClick = { tab = StatsTab.RANKING },
+                        text = { Text("Ranking") }
+                    )
+                    Tab(
+                        selected = tab == StatsTab.LOGROS,
+                        onClick = { tab = StatsTab.LOGROS },
+                        text = { Text("Logros") }
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            scrollBehavior = scrollBehavior
+        )
 
         when (tab) {
-            StatsTab.STATS -> StatsContent()
-            StatsTab.RANKING -> RankingContent()
-            StatsTab.LOGROS -> LogrosContent()
+            StatsTab.STATS -> StatsContent(scrollBehavior)
+            StatsTab.RANKING -> RankingContent(scrollBehavior)
+            StatsTab.LOGROS -> LogrosContent(scrollBehavior)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StatsContent() {
+private fun StatsContent(scrollBehavior: TopAppBarScrollBehavior) {
     val container = rememberAppContainer()
     val vm: StatsViewModel = viewModel(
         factory = StatsViewModelFactory(container.userRepository)
     )
     val state by vm.ui.collectAsState()
-    LaunchedEffect(Unit) {
-        vm.refresh()
-    }
+    LaunchedEffect(Unit) { vm.refresh() }
 
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            ForestCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("📚", fontSize = 28.sp)
-                        Text(
-                            "${state.totalMinutes}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            "Minutos totales",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("✅", fontSize = 28.sp)
-                        Text(
-                            "${state.totalSessions}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            "Sesiones",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
+    if (state.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            item {
+                ForestCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("📚", fontSize = 28.sp)
+                            Text(
+                                "${state.totalMinutes}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                "Minutos totales",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("✅", fontSize = 28.sp)
+                            Text(
+                                "${state.totalSessions}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                "Sesiones",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
                     }
                 }
             }
 
-            Text("Historial de sesiones", style = MaterialTheme.typography.titleMedium)
+            item {
+                Text("Historial de sesiones", style = MaterialTheme.typography.titleMedium)
+            }
 
             if (state.sessions.isEmpty()) {
-                ForestCard(modifier = Modifier.fillMaxWidth()) {
-                    Text("Aún no hay sesiones.")
-                    Text("Completa una sesión en Focus para verla aquí.")
+                item {
+                    ForestCard(modifier = Modifier.fillMaxWidth()) {
+                        Text("Aún no hay sesiones.")
+                        Text("Completa una sesión en Focus para verla aquí.")
+                    }
                 }
             } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(state.sessions) { s ->
-                        ForestCard(modifier = Modifier.fillMaxWidth()) {
-                            Text(s.subjectName, style = MaterialTheme.typography.titleMedium)
-                            Spacer(Modifier.height(6.dp))
-                            Text("Real: ${s.actualMinutes} min | Plan: ${s.plannedMinutes} min")
-                            Text("Inicio: ${formatMillis(s.startTimeMillis)}")
-                            Text("Fin: ${formatMillis(s.endTimeMillis)}")
-                        }
+                items(state.sessions) { s ->
+                    ForestCard(modifier = Modifier.fillMaxWidth()) {
+                        Text(s.subjectName, style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(6.dp))
+                        Text("Real: ${s.actualMinutes} min | Plan: ${s.plannedMinutes} min")
+                        Text("Inicio: ${formatMillis(s.startTimeMillis)}")
+                        Text("Fin: ${formatMillis(s.endTimeMillis)}")
                     }
                 }
             }
@@ -155,52 +170,53 @@ private fun StatsContent() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RankingContent() {
+private fun RankingContent(scrollBehavior: TopAppBarScrollBehavior) {
     val container = rememberAppContainer()
     val vm: RankingViewModel = viewModel(
         factory = RankingViewModelFactory(container.userRepository)
     )
     val ranking by vm.ranking.collectAsState()
-    LaunchedEffect(Unit) {
-        vm.refresh()
-    }
+    LaunchedEffect(Unit) { vm.refresh() }
 
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        if (ranking.isEmpty()) {
+    if (ranking.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.TopStart
+        ) {
             ForestCard(modifier = Modifier.fillMaxWidth()) {
                 Text("Aún no hay datos.")
                 Text("Completa sesiones en Focus para ver el ranking.")
             }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                itemsIndexed(ranking) { index, row ->
-                    val medal = when (index) {
-                        0 -> "🥇"
-                        1 -> "🥈"
-                        2 -> "🥉"
-                        else -> "•"
-                    }
-                    ForestCard(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column {
-                                Text("$medal ${row.subjectName}", style = MaterialTheme.typography.titleMedium)
-                                Text("${row.totalMinutes} minutos", style = MaterialTheme.typography.bodyMedium)
-                            }
-                            Text("#${index + 1}", style = MaterialTheme.typography.titleMedium)
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            itemsIndexed(ranking) { index, row ->
+                val medal = when (index) {
+                    0 -> "🥇"
+                    1 -> "🥈"
+                    2 -> "🥉"
+                    else -> "•"
+                }
+                ForestCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("$medal ${row.subjectName}", style = MaterialTheme.typography.titleMedium)
+                            Text("${row.totalMinutes} minutos", style = MaterialTheme.typography.bodyMedium)
                         }
+                        Text("#${index + 1}", style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }
@@ -208,8 +224,9 @@ private fun RankingContent() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LogrosContent() {
+private fun LogrosContent(scrollBehavior: TopAppBarScrollBehavior) {
     val container = rememberAppContainer()
     val vm: AchievementsViewModel = viewModel(
         factory = AchievementsViewModelFactory(
@@ -262,61 +279,57 @@ private fun LogrosContent() {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        val unlocked = state.achievements.count { it.unlocked }
-        val total = state.achievements.size
+    val unlocked = state.achievements.count { it.unlocked }
+    val total = state.achievements.size
 
-        ForestCard(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        "$unlocked / $total desbloqueados",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        "Sigue estudiando para conseguir más 🌱",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-                Text(
-                    "${if (total == 0) 0 else (unlocked * 100f / total).toInt()}%",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { if (total == 0) 0f else unlocked.toFloat() / total.toFloat() },
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary
-            )
+    if (state.isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
-
-        if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(state.achievements) { achievement ->
-                    AchievementCard(achievement = achievement)
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                ForestCard(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                "$unlocked / $total desbloqueados",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                "Sigue estudiando para conseguir más 🌱",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
+                        Text(
+                            "${if (total == 0) 0 else (unlocked * 100f / total).toInt()}%",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { if (total == 0) 0f else unlocked.toFloat() / total.toFloat() },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
+            }
+
+            items(state.achievements) { achievement ->
+                AchievementCard(achievement = achievement)
             }
         }
     }
